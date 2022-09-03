@@ -2,59 +2,38 @@ import { PrismaClient, Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const userData: Prisma.UserCreateInput[] = [
+const employeeData: Prisma.EmployeeCreateInput[] = [
   {
-    name: 'Alice',
-    email: 'alice@prisma.io',
-    posts: {
-      create: [
-        {
-          title: 'Join the Prisma Slack',
-          content: 'https://slack.prisma.io',
-          published: true,
-        },
-      ],
-    },
+    "name": "Abhishek",
+    "salary": "145000",
+    "currency": "USD",
+    "department": "Engineering",
+    "subDepartment": "Platform"
   },
   {
-    name: 'Nilu',
-    email: 'nilu@prisma.io',
-    posts: {
-      create: [
-        {
-          title: 'Follow Prisma on Twitter',
-          content: 'https://www.twitter.com/prisma',
-          published: true,
-        },
-      ],
-    },
+    "name": "Anurag",
+    "salary": "90000",
+    "currency": "USD",
+    "department": "Banking",
+    "onContract": true,
+    "subDepartment": "Loan"
   },
   {
-    name: 'Mahmoud',
-    email: 'mahmoud@prisma.io',
-    posts: {
-      create: [
-        {
-          title: 'Ask a question about Prisma on GitHub',
-          content: 'https://www.github.com/prisma/prisma/discussions',
-          published: true,
-        },
-        {
-          title: 'Prisma on YouTube',
-          content: 'https://pris.ly/youtube',
-        },
-      ],
-    },
+    "name": "Himani",
+    "salary": "240000",
+    "currency": "USD",
+    "department": "Engineering",
+    "subDepartment": "Platform"
   },
 ]
 
 async function main() {
   console.log(`Start seeding ...`)
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: u,
+  for (const e of employeeData) {
+    const employee = await prisma.employee.create({
+      data: e,
     })
-    console.log(`Created user with id: ${user.id}`)
+    console.log(`Created employee with id: ${employee.id}`)
   }
   console.log(`Seeding finished.`)
 }
