@@ -1,5 +1,5 @@
 import {Prisma, PrismaClient} from '@prisma/client'
-import express from 'express'
+import express, {NextFunction, Request, Response} from 'express'
 import {computeSummaryStatisticsReducer} from "./util/computeSummaryStatisticsReducer";
 import {
   EmployeesByDepartment,
@@ -7,21 +7,39 @@ import {
   SummaryStatisticsByDepartment,
   SummaryStatisticsBySubDepartment
 } from "./util/types";
+import {AnyZodObject} from "zod";
+import {employeeCreateRequest} from "./validation/requests";
 
 const prisma = new PrismaClient()
 const app = express()
 
 app.use(express.json())
 
-app.post('/employee', async (req, res) => {
-  const { name, salary, currency, onContract, department, subDepartment } = req.body
+const validate = (schema: AnyZodObject) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await schema.parseAsync({
+        body: req.body,
+        query: req.query,
+        params: req.params,
+      });
+      return next();
+    } catch (error) {
+      return res.status(400).json(error);
+    }
+  };
+
+app.post('/employee',
+  validate(employeeCreateRequest),
+  async (req, res) => {
+  const { name, salary, currency, on_contract, department, sub_department } = req.body
   const user: Prisma.EmployeeCreateInput = {
     name,
     salary,
     currency,
-    onContract: !!onContract ?? false,
+    onContract: !!on_contract ?? false,
     department,
-    subDepartment,
+    subDepartment: sub_department,
   }
 
   const employee = await prisma.employee.create({
