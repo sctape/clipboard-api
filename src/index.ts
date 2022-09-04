@@ -9,11 +9,28 @@ import {
 } from "./util/types";
 import {AnyZodObject} from "zod";
 import {employeeCreateRequest} from "./validation/requests";
+import jwt from 'jsonwebtoken'
+import {expressjwt} from 'express-jwt'
 
 const prisma = new PrismaClient()
 const app = express()
+const tokenSecret = 'SUPER_SECURE_SECRET' // todo pull this from an env variable that comes from a secrets manager
 
-app.use(express.json())
+app.use(
+  express.json(),
+  expressjwt({
+    secret: tokenSecret,
+    algorithms: ["HS256"],
+  }).unless({ path: ["/token"] }),
+  (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (err.name === "UnauthorizedError") {
+      res.status(401).send({code: "INVALID_TOKEN", message: "Token is invalid"});
+    } else {
+      next(err);
+    }
+  }
+)
+
 
 const validate = (schema: AnyZodObject) =>
   async (req: Request, res: Response, next: NextFunction) => {
@@ -28,6 +45,17 @@ const validate = (schema: AnyZodObject) =>
       return res.status(400).json(error);
     }
   };
+
+app.post('/token', (req, res) => {
+  const {username, password} = req.body
+
+  if (username !== 'dummy' && password !== 'password') {
+    return res.status(401).json({code: "UNAUTHORIZED", message: "Username and/or password are invalid"});
+  }
+
+  const token = jwt.sign({username}, tokenSecret, { expiresIn: '7d' });
+  return res.json({token});
+});
 
 app.post('/employee',
   validate(employeeCreateRequest),
