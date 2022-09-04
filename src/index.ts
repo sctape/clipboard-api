@@ -1,148 +1,129 @@
-import { Prisma, PrismaClient } from '@prisma/client'
+import {Prisma, PrismaClient} from '@prisma/client'
 import express from 'express'
+import {computeSummaryStatisticsReducer} from "./util/computeSummaryStatisticsReducer";
+import {
+  EmployeesByDepartment,
+  EmployeesBySubDepartment,
+  SummaryStatisticsByDepartment,
+  SummaryStatisticsBySubDepartment
+} from "./util/types";
 
 const prisma = new PrismaClient()
 const app = express()
 
 app.use(express.json())
 
-app.post(`/signup`, async (req, res) => {
-  const { name, email, posts } = req.body
+app.post('/employee', async (req, res) => {
+  const { name, salary, currency, onContract, department, subDepartment } = req.body
+  const user: Prisma.EmployeeCreateInput = {
+    name,
+    salary,
+    currency,
+    onContract: !!onContract ?? false,
+    department,
+    subDepartment,
+  }
 
-  const postData = posts?.map((post: Prisma.PostCreateInput) => {
-    return { title: post?.title, content: post?.content }
+  const employee = await prisma.employee.create({
+    data: user
   })
-
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
-      posts: {
-        create: postData,
-      },
-    },
-  })
-  res.json(result)
+  res.json(employee)
 })
 
-app.post(`/post`, async (req, res) => {
-  const { title, content, authorEmail } = req.body
-  const result = await prisma.post.create({
-    data: {
-      title,
-      content,
-      author: { connect: { email: authorEmail } },
-    },
-  })
-  res.json(result)
-})
-
-app.put('/post/:id/views', async (req, res) => {
+app.delete('/employee/:id', async (req, res) => {
   const { id } = req.params
 
   try {
-    const post = await prisma.post.update({
-      where: { id: Number(id) },
-      data: {
-        viewCount: {
-          increment: 1,
-        },
-      },
+    await prisma.employee.delete({
+      where: {id: Number(id)}
     })
-
-    res.json(post)
+    res.status(204)
   } catch (error) {
-    res.json({ error: `Post with ID ${id} does not exist in the database` })
+    console.error(error)
+    res.json({ error: `Something went wrong deleting employee ID ${id}` })
   }
 })
 
-app.put('/publish/:id', async (req, res) => {
-  const { id } = req.params
-
+app.get('/employee/salary-stats', async (req, res) => {
   try {
-    const postData = await prisma.post.findUnique({
-      where: { id: Number(id) },
-      select: {
-        published: true,
-      },
-    })
+    const employees = await prisma.employee.findMany()
+    const stats = employees.reduce(computeSummaryStatisticsReducer, {mean: 0})
 
-    const updatedPost = await prisma.post.update({
-      where: { id: Number(id) || undefined },
-      data: { published: !postData?.published },
-    })
-    res.json(updatedPost)
+    res.json(stats)
   } catch (error) {
-    res.json({ error: `Post with ID ${id} does not exist in the database` })
+    console.error(error)
+    res.json({ error: `Something went wrong fetching employees` })
   }
 })
 
-app.delete(`/post/:id`, async (req, res) => {
-  const { id } = req.params
-  const post = await prisma.post.delete({
-    where: {
-      id: Number(id),
-    },
-  })
-  res.json(post)
-})
-
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany()
-  res.json(users)
-})
-
-app.get('/user/:id/drafts', async (req, res) => {
-  const { id } = req.params
-
-  const drafts = await prisma.user
-    .findUnique({
+app.get('/employee/salary-stats/on-contract', async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany({
       where: {
-        id: Number(id),
-      },
-    })
-    .posts({
-      where: { published: false },
-    })
-
-  res.json(drafts)
-})
-
-app.get(`/post/:id`, async (req, res) => {
-  const { id }: { id?: string } = req.params
-
-  const post = await prisma.post.findUnique({
-    where: { id: Number(id) },
-  })
-  res.json(post)
-})
-
-app.get('/feed', async (req, res) => {
-  const { searchString, skip, take, orderBy } = req.query
-
-  const or: Prisma.PostWhereInput = searchString
-    ? {
-        OR: [
-          { title: { contains: searchString as string } },
-          { content: { contains: searchString as string } },
-        ],
+        onContract: true,
       }
-    : {}
+    })
+    const stats = employees.reduce(computeSummaryStatisticsReducer, {mean: 0})
 
-  const posts = await prisma.post.findMany({
-    where: {
-      published: true,
-      ...or,
-    },
-    include: { author: true },
-    take: Number(take) || undefined,
-    skip: Number(skip) || undefined,
-    orderBy: {
-      updatedAt: orderBy as Prisma.SortOrder,
-    },
-  })
+    res.json(stats)
+  } catch (error) {
+    console.error(error)
+    res.json({ error: `Something went wrong fetching employees` })
+  }
+})
 
-  res.json(posts)
+app.get('/employee/salary-stats/by-department', async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany()
+
+    // group employees by department
+    const employeesByDepartment = employees.reduce<EmployeesByDepartment>((employees, employee) => {
+      // check for undefined keys
+      employees[employee.department] = (employees[employee.department] ?? []).concat(employee)
+      return employees
+    }, {})
+
+    // loop over each department computing summary statistics for each set of employees
+    const stats: SummaryStatisticsByDepartment = {}
+    let k: keyof typeof employeesByDepartment
+    for (k in employeesByDepartment) {
+      stats[k] = employeesByDepartment[k].reduce(computeSummaryStatisticsReducer, {mean: 0})
+    }
+    res.json(stats)
+  } catch (error) {
+    console.error(error)
+    res.json({ error: `Something went wrong fetching employees` })
+  }
+})
+
+app.get('/employee/salary-stats/by-sub-department', async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany()
+
+    // group employees by department and sub-department
+    const employeesBySubDepartment = employees.reduce<EmployeesBySubDepartment>((employees, employee) => {
+      // check for undefined keys
+      employees[employee.department][employee.subDepartment] = (employees[employee.department][employee.subDepartment] ?? []).concat(employee)
+      return employees
+    }, {})
+
+    // loop over each department and sub department computing summary statistics for each set of employees
+    const stats: SummaryStatisticsBySubDepartment = {}
+
+    let depKey: keyof typeof employeesBySubDepartment
+    for (depKey in employeesBySubDepartment) {
+      const department = employeesBySubDepartment[depKey]
+
+      let subKey: keyof typeof department
+      for (subKey in department) {
+        stats[depKey][subKey] = department[subKey].reduce(computeSummaryStatisticsReducer, {mean: 0})
+      }
+    }
+    res.json(stats)
+  } catch (error) {
+    console.error(error)
+    res.json({ error: `Something went wrong fetching employees` })
+  }
 })
 
 const server = app.listen(3000, () =>
