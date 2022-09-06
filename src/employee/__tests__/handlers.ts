@@ -3,6 +3,7 @@ import {DeepMockProxy, mockDeep, mockReset} from "jest-mock-extended";
 import prisma from './../../client'
 
 import {
+  deleteEmployee,
   getEmployeeSalaryStats,
   getEmployeeSalaryStatsByDepartment,
   getEmployeeSalaryStatsBySubDepartment,
@@ -10,14 +11,18 @@ import {
   postEmployee
 } from "./../handlers";
 import {Request, Response} from "express";
+import {getMockReq, getMockRes} from "@jest-mock/express";
 
 jest.mock('./../../client', () => ({
   __esModule: true,
   default: mockDeep<PrismaClient>(),
 }))
 
+const { res, next, clearMockRes } = getMockRes()
+
 beforeEach(() => {
   mockReset(prismaMock)
+  clearMockRes()
 })
 
 const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>
@@ -138,6 +143,22 @@ describe("Request Handlers", () => {
     });
 
 
+  });
+
+  describe("DeleteEmployee", () => {
+    it('will delete an employee', async () => {
+      prismaMock.employee.findMany.mockResolvedValue(employeeData)
+      const req = getMockReq({
+        params: { id: "111" },
+        body: { firstname: 'James', lastname: 'Smith', age: 34 },
+      })
+
+      await deleteEmployee(req as Request, res as Response)
+      expect(res.status).toBeCalledWith(204)
+      expect(prisma.employee.delete).toBeCalledWith({
+        where: {id: 111}
+      })
+    });
   });
 
   describe("GetEmployeeSalaryStats", () => {

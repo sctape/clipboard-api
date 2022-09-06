@@ -1,5 +1,5 @@
 {
-  "name": "rest-express",
+  "name": "clipboard-api",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
@@ -15,6 +15,7 @@
     "zod": "^3.18.0"
   },
   "devDependencies": {
+    "@jest-mock/express": "^2.0.1",
     "@types/express": "^4.17.13",
     "@types/jest": "^29.0.0",
     "@types/jsonwebtoken": "^8.5.9",
