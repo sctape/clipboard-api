@@ -71,6 +71,6 @@ app.get('/employee/salary-stats/by-department', getEmployeeSalaryStatsByDepartme
 
 app.get('/employee/salary-stats/by-sub-department', getEmployeeSalaryStatsBySubDepartment)
 
-const server = app.listen(3000, () =>
-  console.log(`🚀 Server ready at: http://localhost:3000`),
+const server = app.listen(5000, () =>
+  console.log(`🚀 Server ready at: http://localhost:5000`),
 )

@@ -24,7 +24,7 @@ npm run dev
 ## HTTP Request Examples
 ### Generate an auth token
 ```bash
-curl -L -X POST 'localhost:3000/token/' \
+curl -L -X POST 'localhost:5000/token/' \
 -H 'Content-Type: application/json' \
 --data-raw '{
     "username": "dummy",
@@ -34,7 +34,7 @@ curl -L -X POST 'localhost:3000/token/' \
 
 ### Create an employee
 ```bash
-curl -L -X POST 'localhost:3000/employee/' \
+curl -L -X POST 'localhost:5000/employee/' \
 -H 'Authorization: Bearer <AUTH_TOKEN>' \
 -H 'Content-Type: application/json' \
 --data-raw '{
@@ -48,31 +48,31 @@ curl -L -X POST 'localhost:3000/employee/' \
 
 ### Delete an employee
 ```bash
-curl -L -X DELETE 'localhost:3000/employee/7' \
+curl -L -X DELETE 'localhost:5000/employee/7' \
 -H 'Authorization: Bearer <AUTH_TOKEN>'
 ```
 
 ### Fetch summary statistics
 ```bash
-curl -L -X GET 'localhost:3000/employee/salary-stats' \
+curl -L -X GET 'localhost:5000/employee/salary-stats' \
 -H 'Authorization: Bearer <AUTH_TOKEN>'
 ```
 
 ### Fetch summary statistics for contract employees
 ```bash
-curl -L -X GET 'localhost:3000/employee/salary-stats/on-contract' \
+curl -L -X GET 'localhost:5000/employee/salary-stats/on-contract' \
 -H 'Authorization: Bearer <AUTH_TOKEN>'
 ```
 
 ### Fetch summary statistics by department
 ```bash
-curl -L -X GET 'localhost:3000/employee/salary-stats/by-department' \
+curl -L -X GET 'localhost:5000/employee/salary-stats/by-department' \
 -H 'Authorization: Bearer <AUTH_TOKEN>'
 ```
 
 ### Fetch summary statistics by sub-department
 ```bash
-curl -L -X GET 'localhost:3000/employee/salary-stats/by-sub-department' \
+curl -L -X GET 'localhost:5000/employee/salary-stats/by-sub-department' \
 -H 'Authorization: Bearer <AUTH_TOKEN>'
 ```
 

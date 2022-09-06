@@ -1,9 +1,12 @@
-FROM node:16-alpine
+FROM node:16-slim
 
 # Create app directory
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+
+RUN apt-get update
+RUN apt-get install -y openssl
 
 RUN npm install
 COPY . .
