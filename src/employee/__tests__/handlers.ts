@@ -10,7 +10,6 @@ import {
   getEmployeeSalaryStatsOnContract,
   postEmployee
 } from "./../handlers";
-import {Request, Response} from "express";
 import {getMockReq, getMockRes} from "@jest-mock/express";
 
 jest.mock('./../../client', () => ({
@@ -18,7 +17,7 @@ jest.mock('./../../client', () => ({
   default: mockDeep<PrismaClient>(),
 }))
 
-const { res, next, clearMockRes } = getMockRes()
+const { res, clearMockRes } = getMockRes()
 
 beforeEach(() => {
   mockReset(prismaMock)
@@ -114,7 +113,7 @@ const employeeData: Employee[] = [
 describe("Request Handlers", () => {
   describe("PostEmployee", () => {
     it('will create a new employee record', async () => {
-      const req: Partial<Request> = {
+      const req = getMockReq({
         body: {
           name: "John Doe",
           salary: "100000",
@@ -123,12 +122,9 @@ describe("Request Handlers", () => {
           department: "Engineering",
           sub_department: "Something",
         },
-      }
-      const res: Partial<Response> = {
-        json: jest.fn()
-      }
+      })
 
-      await postEmployee(req as Request, res as Response)
+      await postEmployee(req, res)
       expect(prisma.employee.create).toBeCalledWith({
         data: {
           name: "John Doe",
@@ -150,10 +146,9 @@ describe("Request Handlers", () => {
       prismaMock.employee.findMany.mockResolvedValue(employeeData)
       const req = getMockReq({
         params: { id: "111" },
-        body: { firstname: 'James', lastname: 'Smith', age: 34 },
       })
 
-      await deleteEmployee(req as Request, res as Response)
+      await deleteEmployee(req, res)
       expect(res.status).toBeCalledWith(204)
       expect(prisma.employee.delete).toBeCalledWith({
         where: {id: 111}
@@ -164,12 +159,9 @@ describe("Request Handlers", () => {
   describe("GetEmployeeSalaryStats", () => {
     it('will compute salary stats', async () => {
       prismaMock.employee.findMany.mockResolvedValue(employeeData)
-      const req: Partial<Request> = {}
-      const res: Partial<Response> = {
-        json: jest.fn(),
-      }
+      const req = getMockReq()
 
-      await getEmployeeSalaryStats(req as Request, res as Response)
+      await getEmployeeSalaryStats(req, res)
       expect(res.json).toBeCalledWith({
         mean: 22295010,
         min: 30,
@@ -181,14 +173,10 @@ describe("Request Handlers", () => {
   describe("GetEmployeeSalaryStatsOnContract", () => {
     it('will compute salary stats on contract', async () => {
       const contractEmployees = employeeData.filter(employee => employee.onContract)
-
       prismaMock.employee.findMany.mockResolvedValue(contractEmployees)
-      const req: Partial<Request> = {}
-      const res: Partial<Response> = {
-        json: jest.fn(),
-      }
+      const req = getMockReq()
 
-      await getEmployeeSalaryStatsOnContract(req as Request, res as Response)
+      await getEmployeeSalaryStatsOnContract(req, res)
       expect(res.json).toBeCalledWith({
         mean: 100000,
         min: 90000,
@@ -200,12 +188,9 @@ describe("Request Handlers", () => {
   describe("GetEmployeeSalaryStatsByDepartment", () => {
     it('will compute salary stats by department', async () => {
       prismaMock.employee.findMany.mockResolvedValue(employeeData)
-      const req: Partial<Request> = {}
-      const res: Partial<Response> = {
-        json: jest.fn(),
-      }
+      const req = getMockReq()
 
-      await getEmployeeSalaryStatsByDepartment(req as Request, res as Response)
+      await getEmployeeSalaryStatsByDepartment(req, res)
       expect(res.json).toBeCalledWith({
         "Engineering": {
           mean: 40099006,
@@ -234,12 +219,9 @@ describe("Request Handlers", () => {
   describe("GetEmployeeSalaryStatsBySubDepartment", () => {
     it('will compute salary stats by sub-department', async () => {
       prismaMock.employee.findMany.mockResolvedValue(employeeData)
-      const req: Partial<Request> = {}
-      const res: Partial<Response> = {
-        json: jest.fn(),
-      }
+      const req = getMockReq()
 
-      await getEmployeeSalaryStatsBySubDepartment(req as Request, res as Response)
+      await getEmployeeSalaryStatsBySubDepartment(req, res)
       expect(res.json).toBeCalledWith({
         "Engineering": {
           "Platform": {

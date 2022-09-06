@@ -87,6 +87,7 @@ curl -L -X GET 'localhost:3000/employee/salary-stats/by-sub-department' \
 * docker configuration for running tests in a container
 * move database from sqlite to postgres/mysql in a container
 * add OpenAPI spec for API endpoint documentation
+* reconsider types used for mapping API responses, index signatures make for strong types but do have some baggage of handling lots of undefined cases 
 
 ## Some considerations
 * case 4 could potentially be the same endpoint as case 3 with a query param flag to indicate if you only want contract employees
