@@ -1,4 +1,4 @@
-import {Employee} from "@prisma/client";
+import { Employee } from '@prisma/client'
 
 export interface SummaryStatistics {
   mean: number
@@ -7,11 +7,11 @@ export interface SummaryStatistics {
 }
 
 export interface SummaryStatisticsByDepartment {
-  [department: string]: SummaryStatistics;
+  [department: string]: SummaryStatistics
 }
 
 export interface SummaryStatisticsBySubDepartment {
-  [department: string]: { [subDepartment: string]: SummaryStatistics}
+  [department: string]: { [subDepartment: string]: SummaryStatistics }
 }
 
 export interface EmployeesByDepartment {

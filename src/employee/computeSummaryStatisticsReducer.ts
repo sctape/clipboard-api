@@ -1,8 +1,13 @@
-import {SummaryStatistics} from "./types";
-import {Employee} from "@prisma/client";
+import { SummaryStatistics } from './types'
+import { Employee } from '@prisma/client'
 
-export const computeSummaryStatisticsReducer = (stats: SummaryStatistics, employee: Employee, currentIndex: Number, employees: Employee[]) => {
-  const salary = Number(employee.salary);
+export const computeSummaryStatisticsReducer = (
+  stats: SummaryStatistics,
+  employee: Employee,
+  currentIndex: Number,
+  employees: Employee[]
+): SummaryStatistics => {
+  const salary = Number(employee.salary)
 
   // sum the salaries to average at the end of the reduction
   stats.mean += salary
@@ -17,7 +22,7 @@ export const computeSummaryStatisticsReducer = (stats: SummaryStatistics, employ
 
   // compute the average if at the end of the array
   if (currentIndex === employees.length - 1) {
-    stats.mean = stats.mean/employees.length
+    stats.mean = stats.mean / employees.length
   }
 
   return stats

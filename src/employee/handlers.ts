@@ -1,23 +1,27 @@
-import {Prisma} from "@prisma/client";
-import {Request, Response} from "express";
-import {computeSummaryStatisticsReducer} from "./computeSummaryStatisticsReducer";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
+import { Prisma } from '@prisma/client'
+import { Request, Response } from 'express'
+import { computeSummaryStatisticsReducer } from './computeSummaryStatisticsReducer'
 import {
   EmployeesByDepartment,
   EmployeesBySubDepartment,
   SummaryStatisticsByDepartment,
   SummaryStatisticsBySubDepartment
-} from "./types";
-import prisma from "./../client";
+} from './types'
+import prisma from './../client'
 
 export const postEmployee = async (req: Request, res: Response) => {
-  const { name, salary, currency, on_contract, department, sub_department } = req.body
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { name, salary, currency, on_contract, department, sub_department } =
+    req.body
   const user: Prisma.EmployeeCreateInput = {
     name,
     salary,
     currency,
-    onContract: !!on_contract ?? false,
+    onContract: Boolean(on_contract) ?? false,
     department,
-    subDepartment: sub_department,
+    subDepartment: sub_department
   }
 
   const employee = await prisma.employee.create({
@@ -31,7 +35,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
 
   try {
     await prisma.employee.delete({
-      where: {id: Number(id)}
+      where: { id: Number(id) }
     })
     return res.status(204).send()
   } catch (error) {
@@ -43,70 +47,92 @@ export const deleteEmployee = async (req: Request, res: Response) => {
 export const getEmployeeSalaryStats = async (req: Request, res: Response) => {
   try {
     const employees = await prisma.employee.findMany()
-    const stats = employees.reduce(computeSummaryStatisticsReducer, {mean: 0})
+    const stats = employees.reduce(computeSummaryStatisticsReducer, { mean: 0 })
 
     res.json(stats)
   } catch (error) {
     console.error(error)
-    res.json({ error: `Something went wrong fetching employees` })
+    res.json({ error: 'Something went wrong fetching employees' })
   }
 }
 
-export const getEmployeeSalaryStatsOnContract = async (req: Request, res: Response) => {
+export const getEmployeeSalaryStatsOnContract = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const employees = await prisma.employee.findMany({
       where: {
-        onContract: true,
+        onContract: true
       }
     })
-    const stats = employees.reduce(computeSummaryStatisticsReducer, {mean: 0})
+    const stats = employees.reduce(computeSummaryStatisticsReducer, { mean: 0 })
 
     res.json(stats)
   } catch (error) {
     console.error(error)
-    res.json({ error: `Something went wrong fetching employees` })
+    res.json({ error: 'Something went wrong fetching employees' })
   }
 }
 
-export const getEmployeeSalaryStatsByDepartment = async (req: Request, res: Response) => {
+export const getEmployeeSalaryStatsByDepartment = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const employees = await prisma.employee.findMany()
 
     // group employees by department
-    const employeesByDepartment = employees.reduce<EmployeesByDepartment>((employees, employee) => {
-      // check for undefined keys
-      employees[employee.department] = (employees[employee.department] ?? []).concat(employee)
-      return employees
-    }, {})
+    const employeesByDepartment = employees.reduce<EmployeesByDepartment>(
+      (employees, employee) => {
+        // check for undefined keys
+        employees[employee.department] = (
+          employees[employee.department] ?? []
+        ).concat(employee)
+        return employees
+      },
+      {}
+    )
 
     // loop over each department computing summary statistics for each set of employees
     const stats: SummaryStatisticsByDepartment = {}
     let k: keyof typeof employeesByDepartment
     for (k in employeesByDepartment) {
-      stats[k] = employeesByDepartment[k].reduce(computeSummaryStatisticsReducer, {mean: 0})
+      stats[k] = employeesByDepartment[k].reduce(
+        computeSummaryStatisticsReducer,
+        { mean: 0 }
+      )
     }
     res.json(stats)
   } catch (error) {
     console.error(error)
-    res.json({ error: `Something went wrong fetching employees` })
+    res.json({ error: 'Something went wrong fetching employees' })
   }
 }
 
-export const getEmployeeSalaryStatsBySubDepartment = async (req: Request, res: Response) => {
+export const getEmployeeSalaryStatsBySubDepartment = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const employees = await prisma.employee.findMany()
 
     // group employees by department and sub-department
-    const employeesBySubDepartment = employees.reduce<EmployeesBySubDepartment>((employees, employee) => {
-      // set initial value because index signatures return undefined if unset
-      if (employees[employee.department] === undefined) {
-        employees[employee.department] = {}
-      }
+    const employeesBySubDepartment = employees.reduce<EmployeesBySubDepartment>(
+      (employees, employee) => {
+        // set initial value because index signatures return undefined if unset
+        if (employees[employee.department] === undefined) {
+          employees[employee.department] = {}
+        }
 
-      // check for undefined keys
-      employees[employee.department][employee.subDepartment] = (employees[employee.department][employee.subDepartment] ?? []).concat(employee)
-      return employees
-    }, {})
+        // check for undefined keys
+        employees[employee.department][employee.subDepartment] = (
+          employees[employee.department][employee.subDepartment] ?? []
+        ).concat(employee)
+        return employees
+      },
+      {}
+    )
 
     // loop over each department and sub department computing summary statistics for each set of employees
     const stats: SummaryStatisticsBySubDepartment = {}
@@ -121,12 +147,15 @@ export const getEmployeeSalaryStatsBySubDepartment = async (req: Request, res: R
         if (stats[depKey] === undefined) {
           stats[depKey] = {}
         }
-        stats[depKey][subKey] = department[subKey].reduce(computeSummaryStatisticsReducer, {mean: 0})
+        stats[depKey][subKey] = department[subKey].reduce(
+          computeSummaryStatisticsReducer,
+          { mean: 0 }
+        )
       }
     }
     res.json(stats)
   } catch (error) {
     console.error(error)
-    res.json({ error: `Something went wrong fetching employees` })
+    res.json({ error: 'Something went wrong fetching employees' })
   }
 }

@@ -79,7 +79,7 @@ curl -L -X GET 'localhost:5000/employee/salary-stats/by-sub-department' \
 ## Areas to improve upon
 * implement environment variables and secrets management so that secrets are not committed to git
 * use more secure hashing algorithm for generating JWTs
-* add linting/formatting
+* ~~add linting/formatting~~ Fix remaining linting errors
 * add more unit tests for failure cases
 * add E2E testing using Cypress
 * support absolute imports instead of relative

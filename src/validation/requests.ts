@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from 'zod'
 
 export const employeeCreateRequest = z.object({
   body: z.object({
@@ -7,6 +7,6 @@ export const employeeCreateRequest = z.object({
     currency: z.string(),
     on_contract: z.string().optional(),
     department: z.string(),
-    sub_department: z.string(),
-  }),
-});
+    sub_department: z.string()
+  })
+})
