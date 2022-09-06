@@ -33,7 +33,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
     await prisma.employee.delete({
       where: {id: Number(id)}
     })
-    res.status(204)
+    return res.status(204).send()
   } catch (error) {
     console.error(error)
     res.json({ error: `Something went wrong deleting employee ID ${id}` })
